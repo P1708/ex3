@@ -69,7 +69,7 @@ HealthPoints& HealthPoints::operator+=(int change)
 
 HealthPoints &HealthPoints::operator-=(int change)
 {
-    (*this)=change-(*this);
+    (*this)=(*this)-change;
     return (*this);
 }
 

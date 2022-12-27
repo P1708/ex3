@@ -13,7 +13,6 @@ static bool checkHealthPointsValues(const HealthPoints& healthPoints, int curren
 	result << healthPoints;
 	return (expected.str() == result.str());
 }
-
 bool testInitialization()
 {
 	bool testResult = true;

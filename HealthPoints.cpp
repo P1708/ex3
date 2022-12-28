@@ -33,7 +33,7 @@ HealthPoints operator+(int change , const HealthPoints& healthPoint)
 
 }
 
-HealthPoints HealthPoints::operator-(int change)
+HealthPoints HealthPoints::operator-(int change) const
 {
     HealthPoints tmpHp;
     tmpHp.maxHp=this->maxHp;
@@ -50,7 +50,7 @@ HealthPoints HealthPoints::operator-(int change)
     }
 }
 
-HealthPoints HealthPoints::operator+(int change)
+HealthPoints HealthPoints::operator+(int change) const
 {
     return (change + *this);
 }

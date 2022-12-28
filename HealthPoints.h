@@ -58,7 +58,7 @@ public:
      *@return a new instance of HealthPoints with the same @parm healthPoint maxHp
      *      and with hp= change + healthPoint.hp
     */
-    HealthPoints operator+(int change);
+    HealthPoints operator+(int change) const;
 
     /*
      *subtraction operator for HealthPoints
@@ -69,7 +69,7 @@ public:
      *@return - a new instance of HealthPoints with the same @parm healthPoint maxHp
      *      and with hp=healthPoint.hp - change
     */
-    HealthPoints operator-(int change);
+    HealthPoints operator-(int change) const;
     /*
      *print operator for HealthPoints Class
      * @parm ostream& - where we want to print

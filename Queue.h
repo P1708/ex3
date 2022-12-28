@@ -271,7 +271,7 @@ T &Queue<T>::Iterator::operator*()
     //making sure not to access blank node
     if(this->m_currentNode)
     {
-        return this->m_currentNode->m_data;
+       return this->m_currentNode->m_data;
     }
     throw Queue<T>::Iterator::InvalidOperation();
 }

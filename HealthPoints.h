@@ -107,6 +107,16 @@ public:
      *         - false if this->hp!=hp.hp
     */
     bool operator==(const HealthPoints& hp) const;
+
+    /*
+     *Equal-to operator for HealthPoints Class
+     * @parm hp - what we are comparing to (*this)
+     *
+     * @return - true if this->hp==hp
+     *         - false if this->hp!=hp
+    */
+    bool operator==(int hp) const;
+
     /*
      *Not-equal-to operator for HealthPoints Class
      * @parm hp - what we are comparing to (*this)
@@ -115,6 +125,16 @@ public:
      *         - false if this->hp==hp.hp
     */
     bool operator!=(const HealthPoints& hp) const;
+
+    /*
+     *Not-equal-to operator for HealthPoints Class
+     * @parm hp - what we are comparing to (*this)
+     *
+     * @return - true if this->hp!=hp
+     *         - false if this->hp==hp
+    */
+    bool operator!=(int hp) const;
+
 
 
     /*
@@ -157,6 +177,10 @@ private:
     int maxHp;
 
 };
+
+
+bool operator==(int hp,const HealthPoints& healthPoint);
+bool operator!=(int hp,const HealthPoints& healthPoint);
 
 
 

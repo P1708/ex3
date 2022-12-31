@@ -78,9 +78,29 @@ bool HealthPoints::operator==(const HealthPoints &healthPoint) const
     return (this->hp==healthPoint.hp);
 }
 
+bool HealthPoints::operator==(int hp) const
+{
+    return (this->hp==hp);
+}
+
+bool operator==(int hp,const HealthPoints& healthPoint)
+{
+    return healthPoint==hp;
+}
+
 bool HealthPoints::operator!=(const HealthPoints &healthPoint) const
 {
     return !(healthPoint == (*this));
+}
+
+bool HealthPoints::operator!=(int hp) const
+{
+    return !(hp==(*this));
+}
+
+bool operator!=(int hp,const HealthPoints& healthPoint)
+{
+    return healthPoint!=hp;
 }
 
 bool HealthPoints::operator<(const HealthPoints &healthPoint) const

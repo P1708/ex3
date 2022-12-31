@@ -186,7 +186,7 @@ Queue<T>::Queue(const Queue<T> &toCopy)
 }
 
 template<class T, class FilterFlag>
-Queue<T> &filter(const Queue<T> &queueToFilter, FilterFlag filterFlag);
+Queue<T> filter(const Queue<T> &queueToFilter, FilterFlag filterFlag);
 
 template<class T, class TransformOperation>
 void transform(Queue<T> &queueToTransform, TransformOperation &transformOperation);
@@ -389,20 +389,20 @@ int Queue<T>::size() const
 }
 
 template<class T, class FilterFlag>
-Queue<T> &filter(const Queue<T> &queue, FilterFlag filterFlag)
+Queue<T> filter(const Queue<T> &queue, FilterFlag filterFlag)
 {
     try
     {
         //main problem to be expected is bad alloc, all the rest is pretty standard
-        Queue<T> *tempQueue = new Queue<T>();
+        Queue<T> tempQueue;
         for(const T& iteratedValue : queue)
         {
             if(filterFlag(iteratedValue))
             {
-                tempQueue->pushBack(iteratedValue);
+                tempQueue.pushBack(iteratedValue);
             }
         }
-        return *tempQueue;
+        return tempQueue;
     }
     catch (const std::bad_alloc &e)
     {

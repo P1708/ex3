@@ -7,6 +7,7 @@
 
 #include <stdio.h>
 #include <iostream>
+#include <assert.h>
 
 const int ONLY_BLANKS_SIZE = 2;
 
@@ -72,7 +73,7 @@ Queue<T>::Node::Node(const Queue::Node &toCopy)
     {
         this->m_data = T(toCopy.m_data);
     }
-    catch (const std::bad_alloc)
+    catch (const std::bad_alloc &e)
     {
         delete *this;
         throw;
@@ -99,14 +100,14 @@ Queue<T> &Queue<T>::operator=(const Queue<T> &toCopy)
         this->popFront();
         --sizeDiff;
     }
-    while(sizeDiff>0)
+    while(sizeDiff<0)
     {
         try
         {
             this->pushBack(T());
-            --sizeDiff;
+            ++sizeDiff;
         }
-        catch (std::bad_alloc)
+        catch (std::bad_alloc &e)
         {
             delete &toCopy;
             throw;
@@ -142,9 +143,9 @@ Queue<T>::Queue()
     Node *tailTemp = new Node(T(), nullptr, nullptr, true);
     headTemp->m_previous = tailTemp;
     tailTemp->m_next = headTemp;
-    m_head = headTemp;
-    m_tail = tailTemp;
-    m_size = ONLY_BLANKS_SIZE;
+    this->m_head = headTemp;
+    this->m_tail = tailTemp;
+    this->m_size = ONLY_BLANKS_SIZE;
 }
 
 template<class T>
@@ -157,7 +158,7 @@ Queue<T>::~Queue()
         delete toDelete;
         toDelete = this->m_tail;
     }
-    delete this->m_tail;
+    delete this->m_head;
 }
 
 template<class T>
@@ -165,21 +166,27 @@ Queue<T>::Queue(const Queue<T> &toCopy)
 {
     try
     {
-        *this = Queue();
-        for(Queue<T>::ConstIterator elem =toCopy.begin(); elem!=toCopy.end(); ++elem )
+        Node *headTemp = new Node(T(), nullptr, nullptr, true);
+        Node *tailTemp = new Node(T(), nullptr, nullptr, true);
+        headTemp->m_previous = tailTemp;
+        tailTemp->m_next = headTemp;
+        this->m_head = headTemp;
+        this->m_tail = tailTemp;
+        this->m_size = ONLY_BLANKS_SIZE;
+        for(const T& iteratedValue : toCopy)
         {
-            this->pushBack(elem.m_currentNode->m_data);
+            this->pushBack(iteratedValue);
         }
 
     }
-    catch (const std::bad_alloc) {
+    catch (const std::bad_alloc &e) {
         delete this;
         throw;
     }
 }
 
 template<class T, class FilterFlag>
-Queue<T> &filter(const Queue<T> &queueToFilter, FilterFlag filterFlag);
+Queue<T> filter(const Queue<T> &queueToFilter, FilterFlag filterFlag);
 
 template<class T, class TransformOperation>
 void transform(Queue<T> &queueToTransform, TransformOperation &transformOperation);
@@ -271,7 +278,7 @@ T &Queue<T>::Iterator::operator*()
     //making sure not to access blank node
     if(this->m_currentNode)
     {
-        return this->m_currentNode->m_data;
+       return this->m_currentNode->m_data;
     }
     throw Queue<T>::Iterator::InvalidOperation();
 }
@@ -341,7 +348,7 @@ void Queue<T>::pushBack(const T &nodeToAdd)
     {
         tempNode = new Node(nodeToAdd, this->m_tail->m_next, this->m_tail, false);
     }
-    catch (const std::bad_alloc)
+    catch (const std::bad_alloc &e)
     {
         delete this;
         throw;
@@ -362,7 +369,7 @@ T & Queue<T>::front() const {
 template<class T>
 void Queue<T>::popFront()
 {
-    if(size()==0)
+    if(this->size()==0)
     {
         throw EmptyQueue();
     }
@@ -382,22 +389,22 @@ int Queue<T>::size() const
 }
 
 template<class T, class FilterFlag>
-Queue<T> &filter(const Queue<T> &queue, FilterFlag filterFlag)
+Queue<T> filter(const Queue<T> &queue, FilterFlag filterFlag)
 {
     try
     {
         //main problem to be expected is bad alloc, all the rest is pretty standard
-        Queue<T> *tempQueue = new Queue<T>();
+        Queue<T> tempQueue;
         for(const T& iteratedValue : queue)
         {
             if(filterFlag(iteratedValue))
             {
-                tempQueue->pushBack(iteratedValue);
+                tempQueue.pushBack(iteratedValue);
             }
         }
-        return *tempQueue;
+        return tempQueue;
     }
-    catch (const std::bad_alloc)
+    catch (const std::bad_alloc &e)
     {
         throw;
     }

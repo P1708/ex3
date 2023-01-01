@@ -17,6 +17,10 @@ HealthPoints::HealthPoints(int maxHp)
 
 HealthPoints operator+(int change , const HealthPoints& healthPoint)
 {
+    if(change<0)
+    {
+        return healthPoint - (-1*change);
+    }
     HealthPoints tmpHp;
     tmpHp.maxHp=healthPoint.maxHp;
     if(healthPoint.hp+change>=healthPoint.maxHp)
@@ -35,6 +39,10 @@ HealthPoints operator+(int change , const HealthPoints& healthPoint)
 
 HealthPoints HealthPoints::operator-(int change) const
 {
+    if(change<0)
+    {
+        return (*this + (-1* change));
+    }
     HealthPoints tmpHp;
     tmpHp.maxHp=this->maxHp;
     if(this->hp-change<=ZERO_HP)

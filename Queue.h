@@ -347,16 +347,17 @@ void Queue<T>::pushBack(const T &nodeToAdd)
     try
     {
         tempNode = new Node(nodeToAdd, this->m_tail->m_next, this->m_tail, false);
+        //point surrounding nodes to newly created and increasing queue size
+        this->m_tail->m_next->m_previous = tempNode;
+        this->m_tail->m_next = tempNode;
+        ++this->m_size;
     }
     catch (const std::bad_alloc &e)
     {
         delete this;
         throw;
     }
-    //point surrounding nodes to newly created and increasing queue size
-    this->m_tail->m_next->m_previous = tempNode;
-    this->m_tail->m_next = tempNode;
-    ++this->m_size;
+
 }
 template<class T>
 T & Queue<T>::front() const {

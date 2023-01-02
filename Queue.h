@@ -9,384 +9,385 @@
 #include <iostream>
 #include <assert.h>
 
-const int ONLY_BLANKS_SIZE = 2;
-
 template<class T>
-class Queue {
+class Queue
+{
 public:
     class Node
     {
     public:
-        T m_data;
-        Node *m_next;
-        Node *m_previous;
-        bool m_isBlank;
-        Node(const T data);
-        Node(const Node &toCopy);
-        explicit Node(T m_data, Node *m_next, Node *m_previous, bool m_isBlank);
+        T m_value;
+        Node *m_nextNode;
+        Node *m_previousNode;
 
+        explicit Node(const T value, Node *nextNode, Node *previousNode);
+        Node(const T value);
+        Node(const Node &toClone);
     };
-    Queue();
-    ~Queue();
-    Queue(const Queue &toCopy);
-    Queue<T>& operator=(const Queue &toCopy);
-    /// Inserts a node to the back of the queue, a copy of the node is created
-    /// \param nodeToAdd - node to insert a copy of
-    void pushBack(const T &nodeToAdd);
-    /// Returns value at front of the queue
-    /// \return m_data of node at front of the queue
-    T &front() const;
-    ///pops out node at front of the queue, returns nothing
-    void popFront();
-    /// Gets length of queue
-    /// \return int containing length of queue, if queue is empty, 0
-    int size() const;
-
     class Iterator;
     Iterator begin();
     Iterator end();
-
     class ConstIterator;
     ConstIterator begin() const;
     ConstIterator end() const;
 
     class EmptyQueue{};
 
+    Queue();
+    ~Queue();
+    Queue(const Queue &toClone);
+    Queue<T> &operator=(const Queue &toAssign);
+    void pushBack(const T &toPush);
+    T &front() const;
+    void popFront();
+    int size() const;
+
 private:
     int m_size;
     Node *m_head;
     Node *m_tail;
+    static const int ONLY_BLANKS_SIZE = 2;
 };
 
-template<class T>
-///node constructor using only data to copy
-Queue<T>::Node::Node(const T data):m_data(data)
-{
-}
 
+//
+//start of Node definition section
+//
 template<class T>
-///node constructor using node to copy
-Queue<T>::Node::Node(const Queue::Node &toCopy)
+Queue<T>::Node::Node(const T value, Queue::Node *nextNode, Queue::Node *previousNode)
 {
-    //problems may arise from copying more complex data (node data type is unknown to us) we'll use try catch if alloc of data to copy failed
     try
     {
-        this->m_data = T(toCopy.m_data);
+        this->m_value = T(value);
+    }
+    catch(const std::bad_alloc &e){
+//        delete this;
+        throw std::bad_alloc();
+    }
+    this->m_nextNode = nextNode;
+    this->m_previousNode = previousNode;
+}
+template<class T>
+Queue<T>::Node::Node(const T value)
+{
+    try
+    {
+        this->m_value = T(value);
     }
     catch (const std::bad_alloc &e)
     {
         delete *this;
         throw;
     }
-    //rest of copy is simple, no needed to try catch for malloc
-    this->m_next = toCopy.m_next;
-    this->m_previous = toCopy.m_previous;
-    this->m_isBlank = toCopy.m_isBlank;
-
+    m_nextNode = nullptr;
+    m_previousNode = nullptr;
 }
-
 template<class T>
-Queue<T> &Queue<T>::operator=(const Queue<T> &toCopy)
-{
-    if(this== &toCopy)
-    {
-        return *this;
-    }
-    //instead of creating a whole new queue, well add/remove the amount of nodes needed so sizes will match
-    //and then just implement the values of each node accordingly
-    int sizeDiff = this->size()-toCopy.size();
-    while(sizeDiff>0)
-    {
-        this->popFront();
-        --sizeDiff;
-    }
-    while(sizeDiff<0)
-    {
-        try
-        {
-            this->pushBack(T());
-            ++sizeDiff;
-        }
-        catch (std::bad_alloc &e)
-        {
-            delete &toCopy;
-            throw;
-        }
-    }
-    assert(this->size()==toCopy.size());
-    Queue<T>::Iterator newQueueIterator = this->begin();
-    Queue<T>::ConstIterator oldQueueIterator = toCopy.begin();
-    for(int i=0;i<toCopy.size();i++)
-    {
-        *newQueueIterator=*oldQueueIterator;
-        ++newQueueIterator;
-        ++oldQueueIterator;
-    }
-    return *this;
-
-}
-
-template<class T>
-///explicit node constructor using "full data"
-Queue<T>::Node::Node(T data, Queue::Node *next, Queue::Node *previous, bool isBlank): m_data(data)
-{
-    this->m_next = next;
-    this->m_previous = previous;
-    this->m_isBlank = isBlank;
-}
-
-template<class T>
-///default Queue constructor, we use 2 blank nodes, for head and tail of queue
-Queue<T>::Queue()
-{
-    Node *headTemp = new Node(T(), nullptr, nullptr, true);
-    Node *tailTemp = new Node(T(), nullptr, nullptr, true);
-    headTemp->m_previous = tailTemp;
-    tailTemp->m_next = headTemp;
-    this->m_head = headTemp;
-    this->m_tail = tailTemp;
-    this->m_size = ONLY_BLANKS_SIZE;
-}
-
-template<class T>
-Queue<T>::~Queue()
-{
-    Node *toDelete = this->m_tail;
-    while(toDelete!=this->m_head)
-    {
-        this->m_tail = this->m_tail->m_next;
-        delete toDelete;
-        toDelete = this->m_tail;
-    }
-    delete this->m_head;
-}
-
-template<class T>
-Queue<T>::Queue(const Queue<T> &toCopy)
+Queue<T>::Node::Node(const Node &toClone)
 {
     try
     {
-        Node *headTemp = new Node(T(), nullptr, nullptr, true);
-        Node *tailTemp = new Node(T(), nullptr, nullptr, true);
-        headTemp->m_previous = tailTemp;
-        tailTemp->m_next = headTemp;
-        this->m_head = headTemp;
-        this->m_tail = tailTemp;
-        this->m_size = ONLY_BLANKS_SIZE;
-        for(const T& iteratedValue : toCopy)
-        {
-            this->pushBack(iteratedValue);
-        }
-
+        this->m_value = T(toClone.m_value);
     }
-    catch (const std::bad_alloc &e) {
-        delete this;
+    catch (const std::bad_alloc &e)
+    {
+        delete *this;
         throw;
     }
+    this->m_previousNode = toClone->m_previousNode;
+    this->m_nextNode = toClone->m_nextNode;
 }
+//
+//end of Node definition section
+//
 
-template<class T, class FilterFlag>
-Queue<T> filter(const Queue<T> &queueToFilter, FilterFlag filterFlag);
-
-template<class T, class TransformOperation>
-void transform(Queue<T> &queueToTransform, TransformOperation &transformOperation);
-
-
-
-//Iterator & ConstIterator "section"
-
-//iterator & constIterator class def
+//
+//start of Iterator & constIterator definition section
+//
 template<class T>
 class Queue<T>::Iterator
 {
 private:
     friend class Queue<T>;
+    Node * m_currentNode;
     Queue<T> *m_queue;
-    Node *m_currentNode;
-    //exists for begin and end, private to not obstruct encapsulation, only available from friend class: queue<T>
-    Iterator(Queue<T> *queue, Node *currentNode);
+    Iterator(Node *node, Queue<T> *queue);
 
 public:
-    Iterator(const Iterator &toCopy)=default;
-
-    Iterator &operator=(const Iterator &iterator)=default;
-    Iterator &operator++();
     T &operator*();
-
+    Iterator& operator++();
     bool operator!=(const Iterator &iterator);
-
+    Iterator(const Iterator&) = default;
+    Iterator &operator=(const Iterator &iterator) = default;
     class InvalidOperation{};
-
 };
 template<class T>
 class Queue<T>::ConstIterator
 {
 private:
     friend class Queue<T>;
-    const Queue<T> *m_queue;
     const Node *m_currentNode;
-    //exists for begin and end, private to not obstruct encapsulation, only available from friend class: queue<T>
-    ConstIterator(const Queue<T> *queue, Node *currentNode);
+    const Queue<T> *m_queue;
+    ConstIterator(const Node *node, const Queue<T> *queue);
 
 public:
-    ConstIterator(const ConstIterator &toCopy) = default;
-
-    ConstIterator &operator=(ConstIterator &constIterator)=default;
-    ConstIterator &operator++();
     const T &operator*() const;
-
+    ConstIterator &operator++();
     bool operator!=(const ConstIterator &constIterator) const;
-
+    ConstIterator(const ConstIterator&) = default;
+    ConstIterator &operator=(const ConstIterator &constIterator)= default;
     class InvalidOperation{};
-
-
 };
-//iterator & constIterator operator++ def
+
 template<class T>
-typename Queue<T>::Iterator &Queue<T>::Iterator::operator++()
+Queue<T>::Iterator::Iterator(Node *node, Queue<T> *queue): m_currentNode(node), m_queue(queue)
+{}
+template<class T>
+Queue<T>::ConstIterator::ConstIterator(const Node *node, const Queue<T> *queue): m_currentNode(node), m_queue(queue)
+{}
+
+template<class T>
+T& Queue<T>::Iterator::operator*()
 {
-    //check if current node is the tail pointer
-    if(this->m_currentNode->m_previous== nullptr)
+    if(this->m_currentNode== nullptr)
     {
         throw Queue<T>::Iterator::InvalidOperation();
     }
     else
     {
-        this->m_currentNode=this->m_currentNode->m_previous;
+        return this->m_currentNode->m_value;
+    }
+}
+template<class T>
+const T& Queue<T>::ConstIterator::operator*() const
+{
+    if(this->m_currentNode== nullptr)
+    {
+        throw Queue<T>::ConstIterator::InvalidOperation();
+    }
+    else
+    {
+        return this->m_currentNode->m_value;
+    }
+}
+
+template<class T>
+typename Queue<T>::Iterator& Queue<T>::Iterator::operator++()
+{
+    if(this->m_currentNode->m_previousNode==nullptr)
+    {
+        throw Queue<T>::Iterator::InvalidOperation();
+    }
+    else
+    {
+        this->m_currentNode = this->m_currentNode->m_previousNode;
         return *this;
     }
 }
 template<class T>
 typename Queue<T>::ConstIterator &Queue<T>::ConstIterator::operator++()
 {
-    //check if current node is the tail pointer
-    if(this->m_currentNode->m_previous== nullptr)
+    if(this->m_currentNode->m_previousNode==nullptr)
     {
         throw Queue<T>::ConstIterator::InvalidOperation();
     }
     else
     {
-        this->m_currentNode=this->m_currentNode->m_previous;
+        this->m_currentNode = this->m_currentNode->m_previousNode;
         return *this;
     }
 }
-//iterator & constIterator operator* def
+
 template<class T>
-T &Queue<T>::Iterator::operator*()
+bool Queue<T>::Iterator::operator!=(const Iterator &iterator)
 {
-    //TO_DELETE_COMMENT- may need changing
-    //making sure not to access blank node
-    if(this->m_currentNode)
-    {
-       return this->m_currentNode->m_data;
-    }
-    throw Queue<T>::Iterator::InvalidOperation();
-}
-template<class T>
-const T &Queue<T>::ConstIterator::operator*() const
-{
-    //TO_DELETE_COMMENT- may need changing
-    if(this->m_currentNode)
-    {
-        return this->m_currentNode->m_data;
-    }
-    throw Queue<T>::ConstIterator::InvalidOperation();
-}
-//iterator & constIterator operator!= def
-template<class T>
-bool Queue<T>::Iterator::operator!=(const Queue::Iterator &iterator)
-{
-    //TO_DELETE_COMMENT- may need adding brackets to boolean statement
     return this->m_currentNode!=iterator.m_currentNode;
 }
 template<class T>
-bool Queue<T>::ConstIterator::operator!=(const Queue::ConstIterator &constIterator) const
+bool Queue<T>::ConstIterator::operator!=(const ConstIterator &constIterator) const
 {
-    //TO_DELETE_COMMENT- may need adding brackets to boolean statement
     return this->m_currentNode!=constIterator.m_currentNode;
 }
-//iterator & constIterator private constructor def
+//
+//end of Iterator & constIterator definition section
+//
+
+//
+//start of begin&end definition
+//
 template<class T>
-Queue<T>::Iterator::Iterator(Queue<T> *queue, Queue::Node *currentNode):m_queue(queue), m_currentNode(currentNode)
-{}
-template<class T>
-Queue<T>::ConstIterator::ConstIterator(const Queue<T> *queue, Queue::Node *currentNode):m_queue(queue), m_currentNode(currentNode)
-{}
-//iterator & constIterator queue::begin() def
-template<class T>
-typename  Queue<T>::Iterator Queue<T>::begin()
+typename Queue<T>::Iterator Queue<T>::begin()
 {
-    return Iterator(this, this->m_head->m_previous);
+    return Iterator(this->m_head->m_previousNode, this);
+
 }
 template<class T>
 typename Queue<T>::ConstIterator Queue<T>::begin() const
 {
-    return ConstIterator(this, this->m_head->m_previous);
+    return ConstIterator(this->m_head->m_previousNode, this);
 }
-//iterator & constIterator queue::end() def
+
 template<class T>
-typename  Queue<T>::Iterator Queue<T>::end()
+typename Queue<T>::Iterator Queue<T>::end()
 {
-    return Iterator(this, this->m_tail);
+    return Iterator(this->m_tail, this);
 }
 template<class T>
 typename Queue<T>::ConstIterator Queue<T>::end() const
 {
-    return ConstIterator(this, this->m_tail);
+    return ConstIterator(this->m_tail, this);
 }
+//
+//end of begin&end definition
+//
 
-//end of Iterator & ConstIterator "section"
-
-
-
+//
+//start of queue definitions
+//
 template<class T>
-void Queue<T>::pushBack(const T &nodeToAdd)
+Queue<T>::Queue()
 {
-    Node *tempNode = nullptr;
-    //create a node with correct data & pointing to the right nodes
+    Node *tempHead = nullptr, *tempTail = nullptr;
     try
     {
-        tempNode = new Node(nodeToAdd, this->m_tail->m_next, this->m_tail, false);
-        //point surrounding nodes to newly created and increasing queue size
-        this->m_tail->m_next->m_previous = tempNode;
-        this->m_tail->m_next = tempNode;
-        ++this->m_size;
+        tempHead = new Node(T(), nullptr, nullptr);
+        tempTail = new Node(T(), nullptr, nullptr);
     }
-    catch (const std::bad_alloc &e)
+    catch(const std::bad_alloc &e)
+    {
+        delete tempHead;
+        delete tempTail;
+        throw;
+    }
+    tempTail->m_nextNode = tempHead;
+    tempHead->m_previousNode = tempTail;
+    this->m_head =tempHead;
+    this->m_tail = tempTail;
+    this->m_size = ONLY_BLANKS_SIZE;
+}
+template<class T>
+Queue<T>::~Queue()
+{
+    Node * toDelete = this->m_tail;
+    while(toDelete!=this->m_head)
+    {
+        this->m_tail = this->m_tail->m_nextNode;
+        delete toDelete;
+        toDelete = m_tail;
+    }
+    delete toDelete;
+}
+template<class T>
+Queue<T>::Queue(const Queue &toClone):m_size(2)
+{
+    m_tail =new Node(T(), nullptr, nullptr);
+    m_head =new Node(T(), nullptr, nullptr);
+    m_tail->m_nextNode = m_head;
+    m_head->m_previousNode = m_tail;
+    try{
+        for(const T& toPush : toClone)
+        {
+            this->pushBack(toPush);
+        }
+    }
+    catch(const std::bad_alloc &e)
     {
         delete this;
         throw;
     }
-
 }
+
 template<class T>
-T & Queue<T>::front() const {
-    if(size()==0)
+Queue<T> &Queue<T>::operator=(const Queue<T> &toAssign)
+{
+    if(this==&toAssign)
+    {
+        return *this;
+    }
+    try
+    {
+        Queue<T> *tempQueue = nullptr;
+        tempQueue = new Queue<T>();
+//        tempQueue->m_head = new Node(T(), nullptr, nullptr);
+//        tempQueue->m_tail = new Node(T(), nullptr, nullptr);
+//        tempQueue->m_head->m_previousNode = tempQueue->m_tail;
+//        tempQueue->m_tail->m_nextNode = tempQueue->m_head;
+//        tempQueue->m_size = ONLY_BLANKS_SIZE;
+        for(const T& toPush : toAssign)
+        {
+            tempQueue->pushBack(toPush);
+        }
+        Node *toDelete = m_tail->m_nextNode;
+        while(toDelete!=m_head) {
+            m_tail->m_nextNode = m_tail->m_nextNode->m_nextNode;
+            delete toDelete;
+            toDelete = m_tail->m_nextNode;
+        }
+        m_head = tempQueue->m_head;
+        m_tail = tempQueue->m_tail;
+        m_size = tempQueue->m_size;
+
+    }
+    catch (const std::bad_alloc &e)
+    {
+//        delete this;
+        throw;
+    }
+
+    return *this;
+}
+
+template<class T>
+void Queue<T>::pushBack(const T &toPush)
+{
+    Node *tempNode= nullptr;
+    try
+    {
+        tempNode = new Node(toPush , nullptr, nullptr);
+    }
+    catch (const std::bad_alloc &e)
+    {
+//        delete this;
+        throw std::bad_alloc();
+    }
+    tempNode->m_nextNode = m_tail->m_nextNode;
+    tempNode->m_previousNode = m_tail;
+    m_tail->m_nextNode = tempNode;
+    tempNode->m_nextNode->m_previousNode = tempNode;
+    ++m_size;
+}
+
+template<class T>
+T &Queue<T>::front() const
+{
+    if(m_size==ONLY_BLANKS_SIZE)
     {
         throw Queue<T>::EmptyQueue();
     }
-    return m_head->m_previous->m_data;
+    return m_head->m_previousNode->m_value;
 }
+
 template<class T>
 void Queue<T>::popFront()
 {
-    if(this->size()==0)
+    if(m_size==ONLY_BLANKS_SIZE)
     {
-        throw EmptyQueue();
+        throw Queue<T>::EmptyQueue();
     }
     else
     {
-        Node *toDelete = this->m_head->m_previous;
-        this->m_head->m_previous->m_previous->m_next = this->m_head;
-        this->m_head->m_previous= this->m_head->m_previous->m_previous;
+        Node *toDelete = m_head->m_previousNode;
+        toDelete->m_previousNode->m_nextNode = m_head;
+        m_head->m_previousNode = toDelete->m_previousNode;
         delete toDelete;
-        --this->m_size;
+        --m_size;
     }
 }
+
 template<class T>
 int Queue<T>::size() const
 {
-    return this->m_size - ONLY_BLANKS_SIZE;//we have blank nodes, need to not add them into consideration
+    return m_size-ONLY_BLANKS_SIZE;
 }
 
 template<class T, class FilterFlag>
@@ -407,7 +408,7 @@ Queue<T> filter(const Queue<T> &queue, FilterFlag filterFlag)
     }
     catch (const std::bad_alloc &e)
     {
-        throw;
+        throw std::bad_alloc();
     }
 }
 
@@ -425,6 +426,7 @@ void transform(Queue<T> &queueToTransform, TransformOperation &transformOperatio
         queueToTransform.popFront();
     }
 }
-
-
+//
+//end of queue definitions
+//
 #endif //EX3_QUEUE_H

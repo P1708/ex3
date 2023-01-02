@@ -21,6 +21,7 @@ public:
         Node *m_previousNode;
 
         explicit Node(const T value, Node *nextNode, Node *previousNode);
+        ~Node()=default;
         Node(const T value);
         Node(const Node &toClone);
     };
@@ -56,14 +57,14 @@ private:
 template<class T>
 Queue<T>::Node::Node(const T value, Queue::Node *nextNode, Queue::Node *previousNode)
 {
-    try
-    {
-        this->m_value = T(value);
-    }
-    catch(const std::bad_alloc &e){
-//        delete this;
-        throw std::bad_alloc();
-    }
+//    try
+//    {
+    this->m_value = value;
+//    }
+//    catch(const std::bad_alloc &e){
+////        delete this;
+//        throw std::bad_alloc();
+//    }
     this->m_nextNode = nextNode;
     this->m_previousNode = previousNode;
 }
@@ -174,27 +175,29 @@ const T& Queue<T>::ConstIterator::operator*() const
 template<class T>
 typename Queue<T>::Iterator& Queue<T>::Iterator::operator++()
 {
-    if(this->m_currentNode->m_previousNode==nullptr)
-    {
-        throw Queue<T>::Iterator::InvalidOperation();
-    }
-    else
+    if(this->m_currentNode->m_previousNode!=nullptr)
     {
         this->m_currentNode = this->m_currentNode->m_previousNode;
         return *this;
+
+    }
+    else
+    {
+        throw InvalidOperation();
     }
 }
 template<class T>
 typename Queue<T>::ConstIterator &Queue<T>::ConstIterator::operator++()
 {
-    if(this->m_currentNode->m_previousNode==nullptr)
-    {
-        throw Queue<T>::ConstIterator::InvalidOperation();
-    }
-    else
+    if(this->m_currentNode->m_previousNode!=nullptr)
     {
         this->m_currentNode = this->m_currentNode->m_previousNode;
         return *this;
+
+    }
+    else
+    {
+        throw InvalidOperation();
     }
 }
 
@@ -268,12 +271,13 @@ Queue<T>::Queue()
 template<class T>
 Queue<T>::~Queue()
 {
-    Node * toDelete = this->m_tail;
-    while(toDelete!=this->m_head)
+    Node * toDelete = this->m_head;
+    while(m_size>0)
     {
-        this->m_tail = this->m_tail->m_nextNode;
+        this->m_head = this->m_head->m_previousNode;
         delete toDelete;
-        toDelete = m_tail;
+        toDelete = m_head;
+        --m_size;
     }
     delete toDelete;
 }
@@ -306,8 +310,9 @@ Queue<T> &Queue<T>::operator=(const Queue<T> &toAssign)
     }
     try
     {
-        Queue<T> *tempQueue = nullptr;
-        tempQueue = new Queue<T>();
+        Queue<T> &tempQueue = *new Queue<T>();
+//        tempQueue= new Queue<T>();
+//        tempQueue;
 //        tempQueue->m_head = new Node(T(), nullptr, nullptr);
 //        tempQueue->m_tail = new Node(T(), nullptr, nullptr);
 //        tempQueue->m_head->m_previousNode = tempQueue->m_tail;
@@ -315,7 +320,7 @@ Queue<T> &Queue<T>::operator=(const Queue<T> &toAssign)
 //        tempQueue->m_size = ONLY_BLANKS_SIZE;
         for(const T& toPush : toAssign)
         {
-            tempQueue->pushBack(toPush);
+            tempQueue.pushBack(toPush);
         }
         Node *toDelete = m_tail->m_nextNode;
         while(toDelete!=m_head) {
@@ -323,14 +328,16 @@ Queue<T> &Queue<T>::operator=(const Queue<T> &toAssign)
             delete toDelete;
             toDelete = m_tail->m_nextNode;
         }
-        m_head = tempQueue->m_head;
-        m_tail = tempQueue->m_tail;
-        m_size = tempQueue->m_size;
+        delete m_head;
+        delete m_tail;
+        m_head = tempQueue.m_head;
+        m_tail = tempQueue.m_tail;
+        m_size = tempQueue.m_size;
 
     }
     catch (const std::bad_alloc &e)
     {
-//        delete this;
+
         throw;
     }
 
